@@ -2,27 +2,34 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,viewport-fit=cover">
 <title>House of Leaves</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:#0d0d0d;}
-body{background:#0d0d0d;margin:0;padding:0;display:flex;justify-content:center;width:100%;}
-#main{width:min(720px,100%);color:#e8e4d9;font-family:Georgia,serif;font-size:15pt;line-height:1.85;padding:32px 20px 80px;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html{background:#0d0d0d;width:100%;overflow-x:hidden;}
+body{background:#0d0d0d;margin:0 auto;padding:0;width:100%;max-width:720px;overflow-x:hidden;}
+#main{width:100%;color:#e8e4d9;font-family:Georgia,serif;font-size:20px;line-height:1.85;padding:32px 20px 80px;}
 .hd{text-align:center;margin-bottom:48px;padding-bottom:28px;border-bottom:3px double #c9a227}
-.hd-title{font-size:2rem;font-weight:bold;color:#c9a227;margin-bottom:10px}
+.hd-title{font-size:2rem;font-weight:bold;color:#c9a227;margin-bottom:10px;overflow-wrap:break-word;word-break:break-word;}
 .hd-author{font-size:1rem;font-style:italic;opacity:.75}
-.chapter{font-size:1.5rem;font-weight:bold;text-align:center;margin:56px 0 36px;color:#c9a227}
-.para{margin:0 0 1.4em;text-align:justify;text-indent:2em;position:relative;
+.chapter{font-size:1.5rem;font-weight:bold;text-align:center;margin:56px 0 36px;color:#c9a227;overflow-wrap:break-word;word-break:break-word;}
+.para{margin:0 0 1.4em;text-align:justify;text-indent:2em;position:relative;overflow-wrap:break-word;word-break:break-word;max-width:100%;
        transition:transform .25s ease,opacity .25s ease;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .para.swiping{transition:none}
 .para.out-l{transform:translateX(-110%);opacity:0;transition:transform .22s ease,opacity .22s ease}
 .para.out-r{transform:translateX(110%);opacity:0;transition:transform .22s ease,opacity .22s ease}
-#pct{position:fixed;top:12px;right:14px;background:#c9a227;color:#fff;font-family:Georgia,serif;font-size:13px;font-weight:bold;padding:4px 10px;border-radius:20px;opacity:.88;pointer-events:none;z-index:999;}
+/* --- HUD --- */
+#bar{position:fixed;top:0;left:0;height:3px;background:#c9a227;width:0;transition:width .25s;z-index:1001;pointer-events:none;}
+#pct{position:fixed;top:10px;right:14px;background:#c9a227;color:#fff;font-family:Georgia,serif;font-size:13px;font-weight:bold;padding:4px 10px;border-radius:20px;opacity:.88;cursor:pointer;z-index:999;}
+#chap{position:fixed;top:42px;right:14px;background:rgba(0,0,0,.5);color:#fff;font-size:11px;padding:3px 9px;border-radius:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.75;pointer-events:none;z-index:998;}
+#top{position:fixed;bottom:24px;right:14px;background:#c9a227;color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer;opacity:0;transition:opacity .3s;z-index:999;line-height:40px;text-align:center;}
 </style>
 </head>
 <body>
+<div id="bar"></div>
 <div id="pct">0%</div>
+<div id="chap"></div>
+<button id="top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 <div id="main">
 <div class="hd"><div class="hd-title">House of Leaves</div><div class="hd-author">By Mark Z. Danielewski</div></div>
 <div id="content">
@@ -3508,14 +3515,41 @@ body{background:#0d0d0d;margin:0;padding:0;display:flex;justify-content:center;w
 (function(){
 var SK='bf_del_'+location.pathname;
 var deleted=JSON.parse(localStorage.getItem(SK)||'[]');
-var TOTAL=3477;
+var OFFSET=1566;
+var TOTAL=3477+OFFSET;
 
 function allParas(){return Array.from(document.querySelectorAll('.para'));}
 
-function updatePct(){
-  var pct=TOTAL>0?Math.round(deleted.length/TOTAL*100):0;
-  var el=document.getElementById('pct');
-  if(el)el.textContent=pct+'%';
+/* ── 1. WAKE LOCK: keep screen on while reading ── */
+if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(function(){});
+
+/* ── 2. FONT SIZE: tap badge to cycle S/M/L ── */
+var SIZES=['17px','20px','24px'];
+var fsi=parseInt(localStorage.getItem('bf_fs')||'1');
+document.getElementById('main').style.fontSize=SIZES[fsi];
+document.getElementById('pct').addEventListener('click',function(){
+  fsi=(fsi+1)%SIZES.length;
+  document.getElementById('main').style.fontSize=SIZES[fsi];
+  localStorage.setItem('bf_fs',fsi);
+});
+
+/* ── 3. SCROLL PROGRESS BAR + SCROLL-TO-TOP ── */
+window.addEventListener('scroll',function(){
+  var h=document.body.scrollHeight-window.innerHeight;
+  document.getElementById('bar').style.width=(h>0?window.scrollY/h*100:0)+'%';
+  document.getElementById('top').style.opacity=window.scrollY>200?'1':'0';
+},{passive:true});
+
+/* ── 4. HUD: % read · minutes left · current chapter ── */
+function updateHUD(){
+  var pct=TOTAL>0?((OFFSET+deleted.length)/TOTAL*100).toFixed(3):Number(0).toFixed(3);
+  var words=allParas().reduce(function(n,p){return n+p.textContent.trim().split(' ').length;},0);
+  var mins=Math.max(1,Math.round(words/200));
+  document.getElementById('pct').textContent=pct+'% '+mins+'m';
+  var c=document.querySelector('.chapter');
+  var ch=document.getElementById('chap');
+  if(c){ch.textContent=c.textContent.trim().slice(0,32);ch.style.display='';}
+  else ch.style.display='none';
 }
 
 function deleteUpTo(el){
@@ -3526,7 +3560,7 @@ function deleteUpTo(el){
   toRemove.forEach(function(p){if(!deleted.includes(p.id))deleted.push(p.id);});
   localStorage.setItem(SK,JSON.stringify(deleted));
   toRemove.forEach(function(p){p.remove();});
-  updatePct();
+  updateHUD();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -3568,7 +3602,7 @@ document.addEventListener('keydown',function(e){
 function init(){
   deleted.forEach(function(id){var el=document.getElementById(id);if(el)el.remove();});
   allParas().forEach(function(p){attachSwipe(p);});
-  updatePct();
+  updateHUD();
 }
 document.addEventListener('DOMContentLoaded',init);
 })();
