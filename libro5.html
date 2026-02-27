@@ -48,9 +48,8 @@ html,body{background:var(--bg);color:var(--text)}
   position:relative;transition:color .3s}
 .para{margin:0 0 1.4em;text-align:justify;text-indent:2em;position:relative;
   overflow-wrap:break-word;word-break:break-word;max-width:100%;
-  touch-action:pan-y pinch-zoom;user-select:none;-webkit-user-select:none;
-  transition:transform .25s ease,opacity .25s ease;will-change:transform}
-body.no-scroll{overflow:hidden!important;position:fixed;width:100%;top:var(--scroll-y,0)}
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;
+  transition:transform .25s ease,opacity .25s ease}
 .para.swiping{transition:none}
 .para.out-l{transform:translateX(-120%);opacity:0;transition:transform .22s ease,opacity .22s ease}
 .para.out-r{transform:translateX(120%);opacity:0;transition:transform .22s ease,opacity .22s ease}
@@ -1021,7 +1020,7 @@ document.addEventListener('visibilitychange',function(){
 });
 
 /* ═══════════════════════ 2. THEME SYSTEM ══════════════════════ */
-window.setTheme=function(name){
+function setTheme(name){
   var th=THEMES[name];if(!th)return;
   var r=document.documentElement.style;
   r.setProperty('--bg',th.bg);r.setProperty('--text',th.text);
@@ -1033,10 +1032,10 @@ window.setTheme=function(name){
   });
   localStorage.setItem(BOOK_KEY+'_theme',name);
 }
-(function(){var t=localStorage.getItem(BOOK_KEY+'_theme');if(t&&THEMES[t])window.setTheme(t)})();
+(function(){var t=localStorage.getItem(BOOK_KEY+'_theme');if(t&&THEMES[t])setTheme(t)})();
 
 /* ═══════════════════════ 3. FONT SYSTEM ═══════════════════════ */
-window.setFont=function(btn){
+function setFont(btn){
   var f=btn.dataset.font;
   document.documentElement.style.setProperty('--font-body',f);
   document.querySelectorAll('.sett-font-btn').forEach(function(b){
@@ -1044,12 +1043,12 @@ window.setFont=function(btn){
   });
   localStorage.setItem(BOOK_KEY+'_font',f);
 }
-window.setFontSize=function(v){
+function setFontSize(v){
   document.documentElement.style.setProperty('--font-size',v+'px');
   $('size-val').textContent=v+'px';
   localStorage.setItem(BOOK_KEY+'_fsize',v);
 }
-window.setLineHeight=function(v){
+function setLineHeight(v){
   var lh=(v/100).toFixed(2);
   document.documentElement.style.setProperty('--line-height',lh);
   $('lh-val').textContent=lh;
@@ -1227,35 +1226,27 @@ function attachSwipe(p){
     p.classList.add('swiping');
   },{passive:true});
 
-  /*
-   * CRITICAL: touchmove MUST be passive:true so the browser compositor
-   * can scroll vertically without waiting for JS.  We do NOT call
-   * preventDefault — instead touch-action:pan-y on .para tells the
-   * browser to own vertical scroll, and we only animate horizontal
-   * transforms on top of that.  Diagonal swipes may jitter slightly
-   * but scroll will always work.
-   */
   p.addEventListener('touchmove',function(e){
     var dx=e.touches[0].clientX-sx,dy=e.touches[0].clientY-sy;
     if(locked===null){
-      // Need clear horizontal intent: dx must dominate dy by 12px
-      if(Math.abs(dx)>Math.abs(dy)+12&&Math.abs(dx)>18)locked='x';
-      else if(Math.abs(dy)>8)locked='y';
+      if(Math.abs(dx)>Math.abs(dy)+6)locked='x';
+      else locked='y';
     }
     if(locked==='x'){
-      moved=true;
+      e.preventDefault();moved=true;
       p.style.transform='translateX('+dx+'px) rotate('+(dx*0.02)+'deg)';
       p.style.opacity=Math.max(0,1-Math.abs(dx)/180);
+      // Subtle haptic at threshold
       if(Math.abs(dx)>72&&!p._hapticFired){haptic(10);p._hapticFired=true}
     }
-  },{passive:true});
+  },{passive:false});
 
   p.addEventListener('touchend',function(e){
     p.classList.remove('swiping');
     p._hapticFired=false;
     if(locked==='x'&&moved){
       var dx=e.changedTouches[0].clientX-sx;
-      if(Math.abs(dx)>80){haptic(25);animAndDelete(p,dx)}
+      if(Math.abs(dx)>72){haptic(25);animAndDelete(p,dx)}
       else{p.style.transform='';p.style.opacity=''}
     }else{p.style.transform='';p.style.opacity=''}
   },{passive:true});
@@ -1285,16 +1276,8 @@ document.addEventListener('keydown',function(e){
 });
 
 /* ═══════════════════════ 9. TOC DRAWER ════════════════════════ */
-window.openTOC=function(){
-  document.documentElement.style.setProperty('--scroll-y','-'+window.scrollY+'px');
-  document.body.classList.add('no-scroll');
-  $('toc-overlay').classList.add('open');haptic(10)};
-window.closeTOC=function(){
-  $('toc-overlay').classList.remove('open');
-  document.body.classList.remove('no-scroll');
-  var sy=parseInt(document.documentElement.style.getPropertyValue('--scroll-y')||'0');
-  window.scrollTo(0,Math.abs(sy));
-};
+window.openTOC=function(){$('toc-overlay').classList.add('open');haptic(10)};
+window.closeTOC=function(){$('toc-overlay').classList.remove('open')};
 
 // TOC item clicks: scroll to chapter and close drawer
 document.querySelectorAll('.toc-item').forEach(function(a){
@@ -1311,16 +1294,8 @@ document.querySelectorAll('.toc-item').forEach(function(a){
 });
 
 /* ═══════════════════════ 10. SETTINGS PANEL ═══════════════════ */
-window.openSettings=function(){
-  document.documentElement.style.setProperty('--scroll-y','-'+window.scrollY+'px');
-  document.body.classList.add('no-scroll');
-  $('settings-overlay').classList.add('open');haptic(10)};
-window.closeSettings=function(){
-  $('settings-overlay').classList.remove('open');
-  document.body.classList.remove('no-scroll');
-  var sy=parseInt(document.documentElement.style.getPropertyValue('--scroll-y')||'0');
-  window.scrollTo(0,Math.abs(sy));
-};
+window.openSettings=function(){$('settings-overlay').classList.add('open');haptic(10)};
+window.closeSettings=function(){$('settings-overlay').classList.remove('open')};
 
 /* ═══════════════════════ 11. FULLSCREEN ═══════════════════════ */
 window.toggleFullscreen=function(){
