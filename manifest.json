@@ -1,0 +1,23 @@
+{
+  "name": "Mis Libros \u2014 BookForge",
+  "short_name": "BookForge",
+  "description": "Tu biblioteca personal de lectura",
+  "start_url": "/MyBooks/",
+  "scope": "/MyBooks/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1a1a2e",
+  "background_color": "#0f0f1a",
+  "categories": [
+    "books",
+    "education"
+  ],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='64' fill='%231a1a2e'/><text x='256' y='340' font-size='280' text-anchor='middle' fill='%23e2b714'>\ud83d\udcd6</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
