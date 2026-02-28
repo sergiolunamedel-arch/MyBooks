@@ -1,5 +1,5 @@
-// BookForge Service Worker v3.0
-var CACHE='bookforge-v3';
+// BookForge Service Worker v4.0
+var CACHE='bookforge-v4';
 var URLS=["./", "./index.html", "./libro1.html", "./libro2.html", "./libro3.html", "./libro4.html", "./libro5.html", "./libro6.html"];
 self.addEventListener('install',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(URLS)}));self.skipWaiting()});
 self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k!==CACHE}).map(function(k){return caches.delete(k)}))}));self.clients.claim()});
