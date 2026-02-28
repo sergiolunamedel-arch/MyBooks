@@ -3,32 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f0f4ff">
+<meta name="theme-color" content="#08100c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
 <title>Mis Libros — BookForge</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{background:#f0f4ff;color:#0a1440;font-family:Georgia,'Times New Roman',serif;
+html,body{background:#08100c;color:#c0c8d0;font-family:Georgia,'Times New Roman',serif;
   min-height:100vh;min-height:100dvh;overscroll-behavior:none}
 body{display:flex;flex-direction:column;align-items:center;padding:env(safe-area-inset-top,20px) 16px 40px}
 
-header{text-align:center;margin:40px 0 36px;padding-bottom:24px;border-bottom:3px double #1565c0;
+header{text-align:center;margin:40px 0 36px;padding-bottom:24px;border-bottom:3px double #37474f;
   width:100%;max-width:700px;animation:fadeDown .6s ease}
-header h1{font-size:clamp(1.8rem,5vw,2.6rem);color:#1565c0;letter-spacing:2px;margin-bottom:6px}
+header h1{font-size:clamp(1.8rem,5vw,2.6rem);color:#37474f;letter-spacing:2px;margin-bottom:6px}
 header p{font-size:.9rem;opacity:.5;font-style:italic}
 
 .shelf{width:100%;max-width:700px;display:flex;flex-direction:column;gap:14px}
-.book-card{display:flex;align-items:stretch;text-decoration:none;color:#0a1440;
-  background:#f8faff;border:1px solid #7986cb;border-radius:6px;
+.book-card{display:flex;align-items:stretch;text-decoration:none;color:#c0c8d0;
+  background:#060a08;border:1px solid #2c3e50;border-radius:6px;
   overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s;
   animation:fadeUp .5s ease calc(var(--i,0) * 80ms) both}
-.book-card:hover,.book-card:active{transform:translateY(-2px);border-color:#1565c0;
+.book-card:hover,.book-card:active{transform:translateY(-2px);border-color:#37474f;
   box-shadow:0 8px 24px rgba(0,0,0,.3)}
-.book-spine{width:6px;min-height:100%;background:#1565c0;flex-shrink:0}
+.book-spine{width:6px;min-height:100%;background:#37474f;flex-shrink:0}
 .book-body{padding:18px 22px;display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
-.slot{font-size:.75rem;color:#1565c0;font-family:'Segoe UI',system-ui,sans-serif;
+.slot{font-size:.75rem;color:#37474f;font-family:'Segoe UI',system-ui,sans-serif;
   text-transform:uppercase;letter-spacing:1px;opacity:.7}
 .book-title{font-size:1.1rem;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .author{font-size:.85rem;font-style:italic;opacity:.6}
