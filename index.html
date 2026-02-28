@@ -3,117 +3,508 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f8f8f8">
+<meta name="theme-color" content="#0f0f1a" id="meta-theme">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
 <title>Mis Libros — BookForge</title>
 <style>
+/* ═══════════════════════ RESET ═══════════════════════ */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{background:#f8f8f8;color:#141414;font-family:Georgia,'Times New Roman',serif;
-  min-height:100vh;min-height:100dvh;overscroll-behavior:none}
-body{display:flex;flex-direction:column;align-items:center;padding:env(safe-area-inset-top,20px) 16px 40px}
+html{overflow-x:hidden}
+html,body{min-height:100vh;min-height:100dvh;overscroll-behavior:none}
 
-header{text-align:center;margin:40px 0 36px;padding-bottom:24px;border-bottom:3px double #9e9e9e;
-  width:100%;max-width:700px;animation:fadeDown .6s ease}
-header h1{font-size:clamp(1.8rem,5vw,2.6rem);color:#9e9e9e;letter-spacing:2px;margin-bottom:6px}
-header p{font-size:.9rem;opacity:.5;font-style:italic}
+/* ═══════════════════════ CSS VARS — THEMES ═══════════ */
+:root{
+  --bg:#0f0f1a;--text:#c8c6d0;--accent:#e2b714;--card:#161627;
+  --border:#252540;--surface:#1c1c32;--muted:#8886a0;
+  --progress-bg:#252540;--glow:rgba(226,183,20,.12);
+  --font-ui:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --radius:14px;
+}
+:root.light{
+  --bg:#f5f3ee;--text:#2c2a26;--accent:#8b5e3c;--card:#ffffff;
+  --border:#e0ddd5;--surface:#ede9e0;--muted:#8a8678;
+  --progress-bg:#e0ddd5;--glow:rgba(139,94,60,.08);
+}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-ui)}
 
-.shelf{width:100%;max-width:700px;display:flex;flex-direction:column;gap:14px}
-.book-card{display:flex;align-items:stretch;text-decoration:none;color:#141414;
-  background:#ffffff;border:1px solid #e0e0e0;border-radius:6px;
+/* ═══════════════════════ LAYOUT ═══════════════════════ */
+body{display:flex;flex-direction:column;align-items:center;
+  padding:env(safe-area-inset-top,0px) 0 calc(env(safe-area-inset-bottom,0px) + 100px)}
+.container{width:100%;max-width:540px;padding:0 16px}
+
+/* ═══════════════════════ HEADER ═══════════════════════ */
+.header{padding:28px 20px 0;text-align:center;animation:fadeDown .5s ease}
+.header-brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px}
+.header-icon{font-size:1.6rem}
+.header h1{font-size:1.5rem;font-weight:800;color:var(--accent);letter-spacing:.5px;
+  font-family:Georgia,'Times New Roman',serif}
+.header-sub{font-size:.78rem;color:var(--muted);font-style:italic;
+  font-family:Georgia,serif;letter-spacing:.3px}
+
+/* ═══════════════════════ STATS BAR ═══════════════════ */
+.stats-bar{display:flex;gap:1px;background:var(--border);border-radius:var(--radius);
+  overflow:hidden;margin-top:20px;animation:fadeUp .5s ease .1s both}
+.stat{flex:1;background:var(--card);padding:14px 8px;text-align:center;
+  display:flex;flex-direction:column;gap:2px}
+.stat-val{font-size:1.2rem;font-weight:800;color:var(--accent);
+  font-variant-numeric:tabular-nums}
+.stat-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+
+/* ═══════════════════════ CONTROLS ════════════════════ */
+.controls{display:flex;gap:8px;margin-top:16px;animation:fadeUp .5s ease .15s both}
+.search-wrap{flex:1;position:relative}
+.search-input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);
+  border-radius:10px;padding:10px 12px 10px 36px;font-size:.85rem;outline:none;
+  font-family:var(--font-ui);transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--muted)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:.85rem;
+  color:var(--muted);pointer-events:none}
+.ctrl-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);
+  border-radius:10px;width:40px;height:40px;font-size:1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.ctrl-btn:active,.ctrl-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ═══════════════════════ CONTINUE READING HERO ═══════ */
+.hero{margin-top:18px;padding:18px;background:linear-gradient(135deg,var(--card),var(--surface));
+  border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;
+  text-decoration:none;color:var(--text);display:none;
+  transition:transform .2s,border-color .2s;animation:fadeUp .5s ease .2s both;
+  position:relative;overflow:hidden}
+.hero:active{transform:scale(.98)}
+.hero.visible{display:block}
+.hero::after{content:'';position:absolute;top:0;right:0;bottom:0;width:40%;
+  background:linear-gradient(90deg,transparent,var(--glow));pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:5px;font-size:.65rem;
+  text-transform:uppercase;letter-spacing:1px;color:var(--accent);font-weight:700;margin-bottom:10px}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);
+  animation:pulse 2s ease infinite}
+.hero-title{font-size:1.1rem;font-weight:700;margin-bottom:3px;
+  font-family:Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-author{font-size:.8rem;color:var(--muted);font-style:italic;margin-bottom:12px;
+  font-family:Georgia,serif}
+.hero-progress-wrap{height:4px;background:var(--progress-bg);border-radius:2px;overflow:hidden}
+.hero-progress-fill{height:100%;background:var(--accent);border-radius:2px;
+  transition:width .6s cubic-bezier(.4,0,.2,1)}
+.hero-meta{display:flex;justify-content:space-between;margin-top:8px;
+  font-size:.7rem;color:var(--muted)}
+
+/* ═══════════════════════ SECTION LABELS ══════════════ */
+.section-label{font-size:.7rem;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--muted);font-weight:700;margin:22px 0 10px 4px;
+  animation:fadeUp .5s ease .25s both}
+
+/* ═══════════════════════ BOOK CARDS ═════════════════ */
+.shelf{display:flex;flex-direction:column;gap:10px}
+.book-card{display:flex;align-items:stretch;text-decoration:none;color:var(--text);
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
   overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s;
-  animation:fadeUp .5s ease calc(var(--i,0) * 80ms) both}
-.book-card:hover,.book-card:active{transform:translateY(-2px);border-color:#9e9e9e;
-  box-shadow:0 8px 24px rgba(0,0,0,.3)}
-.book-spine{width:6px;min-height:100%;background:#9e9e9e;flex-shrink:0}
-.book-body{padding:18px 22px;display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
-.slot{font-size:.75rem;color:#9e9e9e;font-family:'Segoe UI',system-ui,sans-serif;
-  text-transform:uppercase;letter-spacing:1px;opacity:.7}
-.book-title{font-size:1.1rem;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.author{font-size:.85rem;font-style:italic;opacity:.6}
-.progress{font-size:.7rem;font-family:'Segoe UI',system-ui,sans-serif;opacity:.5;margin-top:4px}
+  animation:fadeUp .4s ease calc(.3s + var(--i,0) * 60ms) both;position:relative}
+.book-card:active{transform:scale(.98);border-color:var(--accent)}
 
-footer{margin-top:auto;padding-top:40px;font-size:.75rem;opacity:.3;
-  font-family:'Segoe UI',system-ui,sans-serif;text-align:center}
+.book-spine{width:5px;min-height:100%;flex-shrink:0;
+  background:linear-gradient(180deg,var(--accent),color-mix(in srgb,var(--accent) 60%,#000))}
+.book-body{padding:16px 16px 14px;display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.book-slot{font-size:.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:1.2px;
+  font-weight:700;opacity:.7}
+.book-title{font-size:1rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:Georgia,serif}
+.book-author{font-size:.78rem;font-style:italic;color:var(--muted);
+  font-family:Georgia,serif}
+.book-progress-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+.book-progress-wrap{flex:1;height:3px;background:var(--progress-bg);border-radius:2px;overflow:hidden}
+.book-progress-fill{height:100%;border-radius:2px;background:var(--accent);
+  transition:width .6s cubic-bezier(.4,0,.2,1)}
+.book-pct{font-size:.7rem;font-weight:700;color:var(--accent);min-width:36px;text-align:right;
+  font-variant-numeric:tabular-nums}
+.book-meta{display:flex;gap:12px;margin-top:4px;font-size:.65rem;color:var(--muted)}
+.book-meta span{display:flex;align-items:center;gap:3px}
+.book-badge{position:absolute;top:10px;right:12px;font-size:.55rem;
+  text-transform:uppercase;letter-spacing:.8px;font-weight:700;padding:2px 8px;
+  border-radius:6px}
+.badge-new{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent)}
+.badge-done{background:color-mix(in srgb,#4ade80 15%,transparent);color:#4ade80}
 
-@keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:none}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted);font-style:italic;
+  font-family:Georgia,serif;font-size:.95rem}
+
+/* ═══════════════════════ SORT INDICATOR ══════════════ */
+.sort-menu{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px;
+  display:none;flex-direction:column;gap:2px;z-index:1100;min-width:180px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);opacity:0;transition:all .25s}
+.sort-menu.open{display:flex;opacity:1;transform:translateX(-50%) translateY(0)}
+.sort-opt{padding:10px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;
+  color:var(--text);transition:background .15s;display:flex;align-items:center;gap:8px}
+.sort-opt:active,.sort-opt.active{background:color-mix(in srgb,var(--accent) 15%,transparent);
+  color:var(--accent)}
+
+/* ═══════════════════════ BOTTOM NAV ═════════════════ */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;
+  background:color-mix(in srgb,var(--bg) 92%,transparent);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border-top:1px solid var(--border);
+  padding:8px 0 calc(env(safe-area-inset-bottom,6px) + 6px);
+  display:flex;justify-content:center;gap:6px;z-index:999}
+.nav-btn{background:var(--card);color:var(--muted);border:1px solid var(--border);
+  border-radius:12px;padding:9px 18px;font-size:.75rem;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:6px;transition:all .2s;
+  font-family:var(--font-ui)}
+.nav-btn:active{transform:scale(.95)}
+.nav-btn.active,.nav-btn:active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ═══════════════════════ PWA INSTALL BANNER ══════════ */
+.install-banner{margin-top:16px;padding:14px 16px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);display:none;align-items:center;gap:12px;
+  animation:fadeUp .4s ease .5s both;cursor:pointer}
+.install-banner.visible{display:flex}
+.install-icon{font-size:1.5rem;flex-shrink:0}
+.install-text{flex:1;font-size:.82rem;line-height:1.4}
+.install-text strong{color:var(--accent)}
+.install-dismiss{font-size:1.1rem;color:var(--muted);cursor:pointer;padding:4px;flex-shrink:0}
+
+/* ═══════════════════════ OFFLINE INDICATOR ═══════════ */
+.offline-bar{position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;
+  text-align:center;padding:4px;font-size:.72rem;font-weight:600;z-index:2000;
+  transform:translateY(-100%);transition:transform .3s}
+.offline-bar.show{transform:translateY(0)}
+
+/* ═══════════════════════ FOOTER ═══════════════════════ */
+footer{padding:32px 0 16px;font-size:.68rem;color:var(--muted);opacity:.5;text-align:center;
+  font-family:var(--font-ui)}
+
+/* ═══════════════════════ ANIMATIONS ═══════════════════ */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ═══════════════════════ SCROLLBAR ════════════════════ */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 </style>
 </head>
 <body>
-<header>
-  <h1>📖 Mis Libros</h1>
-  <p>Biblioteca personal — BookForge</p>
-</header>
-<div class="shelf">
-        <a href="libro1.html" class="book-card" style="--i:1">
-            <div class="book-spine"></div>
-            <div class="book-body">
-                <span class="slot">libro1</span>
-                <span class="book-title">House of Leaves</span>
-                <span class="author">— Mark Z. Danielewski</span>
-                <span class="progress" id="prog-1"></span>
-            </div>
-        </a>
-        <a href="libro2.html" class="book-card" style="--i:2">
-            <div class="book-spine"></div>
-            <div class="book-body">
-                <span class="slot">libro2</span>
-                <span class="book-title">Las Mil & Una Noches</span>
-                <span class="author">— Anónimo</span>
-                <span class="progress" id="prog-2"></span>
-            </div>
-        </a>
-        <a href="libro3.html" class="book-card" style="--i:3">
-            <div class="book-spine"></div>
-            <div class="book-body">
-                <span class="slot">libro3</span>
-                <span class="book-title">Ana Karenina</span>
-                <span class="author">— Leon Tolstoi</span>
-                <span class="progress" id="prog-3"></span>
-            </div>
-        </a>
-        <a href="libro4.html" class="book-card" style="--i:4">
-            <div class="book-spine"></div>
-            <div class="book-body">
-                <span class="slot">libro4</span>
-                <span class="book-title">Complete Books of Blood</span>
-                <span class="author">— Clive Barker</span>
-                <span class="progress" id="prog-4"></span>
-            </div>
-        </a>
-        <a href="libro5.html" class="book-card" style="--i:5">
-            <div class="book-spine"></div>
-            <div class="book-body">
-                <span class="slot">libro5</span>
-                <span class="book-title">Naomi's Room</span>
-                <span class="author">— Jonathan Aycliffe</span>
-                <span class="progress" id="prog-5"></span>
-            </div>
-        </a>
-        <a href="libro6.html" class="book-card" style="--i:6">
-            <div class="book-spine"></div>
-            <div class="book-body">
-                <span class="slot">libro6</span>
-                <span class="book-title">John Carter Barsoom Series (7 Novels) A Princess of Mars; Gods of Mars; Warlord of Mars; Thuvia, Maid of Mars; Chessmen of Mars; Master Mind of Mars; Fighting Man of Mars Complete with Illustrations</span>
-                <span class="author">— Edgar Rice Burroughs</span>
-                <span class="progress" id="prog-6"></span>
-            </div>
-        </a>
+
+<!-- Offline indicator -->
+<div class="offline-bar" id="offline-bar">Sin conexión — modo offline</div>
+
+<div class="container">
+
+<!-- Header -->
+<div class="header">
+  <div class="header-brand">
+    <span class="header-icon">📖</span>
+    <h1>Mis Libros</h1>
+  </div>
+  <div class="header-sub">Biblioteca personal</div>
 </div>
-<footer>BookForge v3.0 · Instalable como app desde el menú del navegador</footer>
+
+<!-- Stats bar -->
+<div class="stats-bar" id="stats-bar">
+  <div class="stat"><span class="stat-val" id="st-books">0</span><span class="stat-label">Libros</span></div>
+  <div class="stat"><span class="stat-val" id="st-read">0</span><span class="stat-label">Leídos</span></div>
+  <div class="stat"><span class="stat-val" id="st-progress">0%</span><span class="stat-label">Progreso</span></div>
+  <div class="stat"><span class="stat-val" id="st-time">0m</span><span class="stat-label">Lectura</span></div>
+</div>
+
+<!-- Controls: Search + Sort + Theme -->
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="search" type="text" placeholder="Buscar libro…" autocomplete="off">
+  </div>
+  <button class="ctrl-btn" id="btn-sort" title="Ordenar">↕</button>
+  <button class="ctrl-btn" id="btn-theme" title="Tema">◐</button>
+</div>
+
+<!-- Continue reading hero -->
+<a class="hero" id="hero" href="#">
+  <div class="hero-badge"><span class="hero-badge-dot"></span> Continuar leyendo</div>
+  <div class="hero-title" id="hero-title"></div>
+  <div class="hero-author" id="hero-author"></div>
+  <div class="hero-progress-wrap"><div class="hero-progress-fill" id="hero-fill"></div></div>
+  <div class="hero-meta">
+    <span id="hero-pct"></span>
+    <span id="hero-time"></span>
+  </div>
+</a>
+
+<!-- PWA Install banner -->
+<div class="install-banner" id="install-banner">
+  <span class="install-icon">📲</span>
+  <div class="install-text"><strong>Instalar como app</strong><br>Acceso rápido desde tu pantalla de inicio</div>
+  <span class="install-dismiss" id="install-dismiss">✕</span>
+</div>
+
+<!-- Library -->
+<div class="section-label" id="lib-label">Biblioteca</div>
+<div class="shelf" id="shelf"></div>
+<div class="empty-state" id="empty" style="display:none">No se encontraron libros</div>
+
+<footer>BookForge v4.0</footer>
+</div>
+
+<!-- Sort menu -->
+<div class="sort-menu" id="sort-menu">
+  <div class="sort-opt active" data-sort="recent" onclick="setSort('recent')">🕐 Recientes</div>
+  <div class="sort-opt" data-sort="progress" onclick="setSort('progress')">📊 Progreso</div>
+  <div class="sort-opt" data-sort="title" onclick="setSort('title')">🔤 Título</div>
+  <div class="sort-opt" data-sort="unread" onclick="setSort('unread')">🆕 Sin empezar</div>
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="scrollTo({top:0,behavior:'smooth'})">📖 Biblioteca</button>
+  <button class="nav-btn" id="nav-continue" style="display:none" onclick="continueLast()">▶ Continuar</button>
+</div>
+
 <script>
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
-// Show reading progress for each book
-document.querySelectorAll('.progress').forEach(function(el){
-  var slot=el.id.replace('prog-','');
-  try{
-    var k='bf_del_'+location.pathname.replace('index.html','')+'libro'+slot+'.html';
-    var d=JSON.parse(localStorage.getItem(k)||'[]');
-    if(d.length>0)el.textContent='Leídos: '+d.length+' párrafos';
-  }catch(e){}
+(function(){
+'use strict';
+
+/* ═══════ DATA ═══════ */
+var BOOKS=[{"slot": 1, "title": "House of Leaves", "author": "Mark Z. Danielewski", "file": "libro1.html"}, {"slot": 2, "title": "Las Mil & Una Noches", "author": "An\u00f3nimo", "file": "libro2.html"}, {"slot": 3, "title": "Ana Karenina", "author": "Leon Tolstoi", "file": "libro3.html"}, {"slot": 4, "title": "Complete Books of Blood", "author": "Clive Barker", "file": "libro4.html"}, {"slot": 5, "title": "Naomi's Room", "author": "Jonathan Aycliffe", "file": "libro5.html"}, {"slot": 6, "title": "John Carter Barsoom Series (7 Novels) A Princess of Mars; Gods of Mars; Warlord of Mars; Thuvia, Maid of Mars; Chessmen of Mars; Master Mind of Mars; Fighting Man of Mars Complete with Illustrations", "author": "Edgar Rice Burroughs", "file": "libro6.html"}];
+var basePath=location.pathname.replace(/index\.html$/,'');
+var currentSort='recent';
+var enriched=[];  // books with progress data attached
+
+/* ═══════ HELPERS ═══════ */
+function bookKey(file){
+  var p=basePath+file;
+  return 'bf_'+p.replace(/[^a-z0-9]/gi,'_');
+}
+function haptic(ms){if(navigator.vibrate)navigator.vibrate(ms||10)}
+function relTime(ts){
+  if(!ts)return '';
+  var d=Date.now()-ts,s=Math.floor(d/1000),m=Math.floor(s/60),h=Math.floor(m/60),dy=Math.floor(h/24);
+  if(dy>30)return Math.floor(dy/30)+'mo';
+  if(dy>0)return dy+'d';
+  if(h>0)return h+'h';
+  if(m>0)return m+'m';
+  return 'ahora';
+}
+function fmtTime(secs){
+  if(!secs||secs<60)return '<1m';
+  var m=Math.floor(secs/60);
+  if(m<60)return m+'m';
+  var h=Math.floor(m/60);
+  return h+'h '+String(m%60)+'m';
+}
+
+/* ═══════ ENRICH BOOKS WITH PROGRESS DATA ═══════ */
+function enrichBooks(){
+  enriched=BOOKS.map(function(b){
+    var bk=bookKey(b.file);
+    var sk=bk+'_del';
+    var del=[];
+    try{del=JSON.parse(localStorage.getItem(sk)||'[]')}catch(e){}
+    var meta=null;
+    try{meta=JSON.parse(localStorage.getItem(bk+'_meta')||'null')}catch(e){}
+    var totalParas=meta?meta.totalParas:0;
+    var totalWords=meta?meta.totalWords:0;
+    var readParas=del.length;
+    var pct=totalParas>0?Math.min(100,readParas/totalParas*100):0;
+    var lastRead=0;
+    try{lastRead=parseInt(localStorage.getItem(bk+'_lastread')||'0')}catch(e){}
+    var readTime=0;
+    try{readTime=parseInt(localStorage.getItem(bk+'_time')||'0')}catch(e){}
+    var remainWords=totalWords>0?Math.max(0,Math.round(totalWords*(1-pct/100))):0;
+    var remainMin=Math.max(1,Math.round(remainWords/220));
+    return {
+      slot:b.slot,title:b.title,author:b.author,file:b.file,
+      readParas:readParas,totalParas:totalParas,totalWords:totalWords,
+      pct:pct,lastRead:lastRead,readTime:readTime,
+      remainMin:remainMin,isNew:readParas===0,isDone:pct>=99.5&&totalParas>0
+    };
+  });
+}
+
+/* ═══════ RENDER STATS ═══════ */
+function renderStats(){
+  var total=enriched.length;
+  var done=enriched.filter(function(b){return b.isDone}).length;
+  var avgPct=total>0?enriched.reduce(function(s,b){return s+b.pct},0)/total:0;
+  var totalTime=enriched.reduce(function(s,b){return s+b.readTime},0);
+  document.getElementById('st-books').textContent=total;
+  document.getElementById('st-read').textContent=done;
+  document.getElementById('st-progress').textContent=Math.round(avgPct)+'%';
+  document.getElementById('st-time').textContent=fmtTime(totalTime);
+}
+
+/* ═══════ RENDER HERO ═══════ */
+function renderHero(){
+  var recent=enriched.filter(function(b){return b.lastRead>0&&!b.isDone})
+    .sort(function(a,b){return b.lastRead-a.lastRead});
+  var hero=document.getElementById('hero');
+  var navCont=document.getElementById('nav-continue');
+  if(recent.length===0){hero.classList.remove('visible');navCont.style.display='none';return}
+  var b=recent[0];
+  hero.href=b.file;
+  hero.classList.add('visible');
+  document.getElementById('hero-title').textContent=b.title;
+  document.getElementById('hero-author').textContent=b.author?'— '+b.author:'';
+  document.getElementById('hero-fill').style.width=b.pct.toFixed(1)+'%';
+  document.getElementById('hero-pct').textContent=b.pct.toFixed(1)+'% completado';
+  document.getElementById('hero-time').textContent='~'+b.remainMin+'min restantes';
+  navCont.style.display='';
+  navCont.onclick=function(){location.href=b.file};
+}
+
+/* ═══════ RENDER SHELF ═══════ */
+function renderShelf(){
+  var query=document.getElementById('search').value.toLowerCase().trim();
+  var list=enriched.slice();
+
+  // Filter by search
+  if(query){
+    list=list.filter(function(b){
+      return b.title.toLowerCase().indexOf(query)>-1||
+             b.author.toLowerCase().indexOf(query)>-1;
+    });
+  }
+
+  // Sort
+  if(currentSort==='recent'){
+    list.sort(function(a,b){return(b.lastRead||0)-(a.lastRead||0)||(a.slot-b.slot)});
+  }else if(currentSort==='progress'){
+    list.sort(function(a,b){return b.pct-a.pct});
+  }else if(currentSort==='title'){
+    list.sort(function(a,b){return a.title.localeCompare(b.title)});
+  }else if(currentSort==='unread'){
+    list.sort(function(a,b){return(a.readParas||0)-(b.readParas||0)});
+  }
+
+  var shelf=document.getElementById('shelf');
+  var empty=document.getElementById('empty');
+  shelf.innerHTML='';
+
+  if(list.length===0){
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+
+  list.forEach(function(b,i){
+    var card=document.createElement('a');
+    card.href=b.file;
+    card.className='book-card';
+    card.style.setProperty('--i',i);
+
+    var badge='';
+    if(b.isDone)badge='<span class="book-badge badge-done">✓ Leído</span>';
+    else if(b.isNew)badge='<span class="book-badge badge-new">Nuevo</span>';
+
+    var authorHtml=b.author?'<div class="book-author">— '+b.author+'</div>':'';
+    var pctText=b.totalParas>0?b.pct.toFixed(1)+'%':'—';
+    var metaParts=[];
+    if(b.totalParas>0)metaParts.push('<span>📄 '+b.readParas+'/'+b.totalParas+'</span>');
+    if(b.readTime>0)metaParts.push('<span>⏱ '+fmtTime(b.readTime)+'</span>');
+    if(b.lastRead>0)metaParts.push('<span>🕐 '+relTime(b.lastRead)+'</span>');
+    if(b.totalParas>0&&!b.isDone)metaParts.push('<span>📖 ~'+b.remainMin+'min</span>');
+
+    card.innerHTML=
+      '<div class="book-spine"></div>'+
+      '<div class="book-body">'+
+        '<div class="book-slot">libro'+b.slot+'</div>'+
+        '<div class="book-title">'+b.title+'</div>'+
+        authorHtml+
+        '<div class="book-progress-row">'+
+          '<div class="book-progress-wrap"><div class="book-progress-fill" style="width:'+b.pct.toFixed(1)+'%"></div></div>'+
+          '<div class="book-pct">'+pctText+'</div>'+
+        '</div>'+
+        (metaParts.length>0?'<div class="book-meta">'+metaParts.join('')+'</div>':'')+
+        badge+
+      '</div>';
+    shelf.appendChild(card);
+  });
+}
+
+/* ═══════ SORT ═══════ */
+window.setSort=function(s){
+  currentSort=s;
+  haptic(10);
+  document.querySelectorAll('.sort-opt').forEach(function(el){
+    el.classList.toggle('active',el.dataset.sort===s);
+  });
+  document.getElementById('sort-menu').classList.remove('open');
+  renderShelf();
+};
+
+/* ═══════ THEME TOGGLE ═══════ */
+function applyTheme(light){
+  document.documentElement.classList.toggle('light',light);
+  localStorage.setItem('bf_index_theme',light?'light':'dark');
+  document.getElementById('meta-theme').setAttribute('content',light?'#f5f3ee':'#0f0f1a');
+  document.getElementById('btn-theme').textContent=light?'◑':'◐';
+}
+var savedTheme=localStorage.getItem('bf_index_theme');
+if(savedTheme==='light')applyTheme(true);
+
+document.getElementById('btn-theme').addEventListener('click',function(){
+  haptic(10);
+  applyTheme(!document.documentElement.classList.contains('light'));
 });
+
+/* ═══════ SORT TOGGLE ═══════ */
+document.getElementById('btn-sort').addEventListener('click',function(e){
+  e.stopPropagation();haptic(10);
+  document.getElementById('sort-menu').classList.toggle('open');
+});
+document.addEventListener('click',function(){
+  document.getElementById('sort-menu').classList.remove('open');
+});
+
+/* ═══════ SEARCH ═══════ */
+var searchTimer=null;
+document.getElementById('search').addEventListener('input',function(){
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(renderShelf,200);
+});
+
+/* ═══════ PWA INSTALL ═══════ */
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();deferredPrompt=e;
+  if(!localStorage.getItem('bf_install_dismissed')){
+    document.getElementById('install-banner').classList.add('visible');
+  }
+});
+document.getElementById('install-banner').addEventListener('click',function(){
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null}
+  document.getElementById('install-banner').classList.remove('visible');
+});
+document.getElementById('install-dismiss').addEventListener('click',function(e){
+  e.stopPropagation();
+  document.getElementById('install-banner').classList.remove('visible');
+  localStorage.setItem('bf_install_dismissed','1');
+});
+
+/* ═══════ OFFLINE ═══════ */
+function checkOnline(){
+  document.getElementById('offline-bar').classList.toggle('show',!navigator.onLine);
+}
+window.addEventListener('online',checkOnline);
+window.addEventListener('offline',checkOnline);
+checkOnline();
+
+/* ═══════ SERVICE WORKER ═══════ */
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
+
+/* ═══════ CONTINUE NAV ═══════ */
+window.continueLast=function(){
+  var h=document.getElementById('hero');
+  if(h&&h.href)location.href=h.href;
+};
+
+/* ═══════ INIT ═══════ */
+enrichBooks();
+renderStats();
+renderHero();
+renderShelf();
+})();
 </script>
 </body>
 </html>
