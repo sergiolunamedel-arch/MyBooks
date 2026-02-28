@@ -48,7 +48,7 @@ html,body{background:var(--bg);color:var(--text)}
   position:relative;transition:color .3s}
 .para{margin:0 0 1.4em;text-align:justify;text-indent:2em;position:relative;
   overflow-wrap:break-word;word-break:break-word;max-width:100%;
-  touch-action:pan-y;user-select:none;-webkit-user-select:none;
+  touch-action:auto;user-select:none;-webkit-user-select:none;
   transition:transform .25s ease,opacity .25s ease}
 .para.swiping{transition:none}
 .para.out-l{transform:translateX(-120%);opacity:0;transition:transform .22s ease,opacity .22s ease}
@@ -861,18 +861,18 @@ window.setFont=function(btn){
     b.classList.toggle('active',b===btn);
   });
   localStorage.setItem(BOOK_KEY+'_font',f);
-}
+};
 window.setFontSize=function(v){
   document.documentElement.style.setProperty('--font-size',v+'px');
   $('size-val').textContent=v+'px';
   localStorage.setItem(BOOK_KEY+'_fsize',v);
-}
+};
 window.setLineHeight=function(v){
   var lh=(v/100).toFixed(2);
   document.documentElement.style.setProperty('--line-height',lh);
   $('lh-val').textContent=lh;
   localStorage.setItem(BOOK_KEY+'_lh',v);
-}
+};
 // Restore saved font prefs
 (function(){
   var f=localStorage.getItem(BOOK_KEY+'_font');
