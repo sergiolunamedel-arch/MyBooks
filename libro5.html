@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=5,viewport-fit=cover">
-<meta name="theme-color" content="#fdf9e8" id="meta-theme">
+<meta name="theme-color" content="#f5f0e8" id="meta-theme">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
@@ -18,8 +18,8 @@ body{margin:0 auto;padding:0;width:100%;max-width:720px;overflow-x:hidden;
 
 /* ═══════════════════════ CSS CUSTOM PROPS (themed) ═══════════ */
 :root{
-  --bg:#fdf9e8;--text:#3a2a10;--accent:#1a5c8a;
-  --card:#fefdf2;--border:#c9a84c;
+  --bg:#f5f0e8;--text:#2a1a0a;--accent:#8b0000;
+  --card:#faf7f0;--border:#9e7a50;
   --font-body:Georgia,serif;--font-size:20px;--line-height:1.85;
 }
 html,body{background:var(--bg);color:var(--text)}
@@ -48,9 +48,9 @@ html,body{background:var(--bg);color:var(--text)}
   position:relative;transition:color .3s}
 .para{margin:0 0 1.4em;text-align:justify;text-indent:2em;position:relative;
   overflow-wrap:break-word;word-break:break-word;max-width:100%;
-  touch-action:auto;user-select:none;-webkit-user-select:none;
+  touch-action:manipulation;
   transition:transform .25s ease,opacity .25s ease}
-.para.swiping{transition:none}
+.para.swiping{transition:none;user-select:none;-webkit-user-select:none}
 .para.out-l{transform:translateX(-120%);opacity:0;transition:transform .22s ease,opacity .22s ease}
 .para.out-r{transform:translateX(120%);opacity:0;transition:transform .22s ease,opacity .22s ease}
 .para.del-collapse{max-height:0 !important;margin:0 !important;padding:0 !important;
@@ -815,7 +815,7 @@ var BOOK_KEY = 'bf_'+location.pathname.replace(/[^a-z0-9]/gi,'_');
 var SK       = BOOK_KEY+'_del';
 var OFFSET   = 1020;
 var TOTAL    = 566+OFFSET;
-var THEMES   = {"dark": {"bg": "#fdf9e8", "text": "#3a2a10", "accent": "#1a5c8a", "card": "#fefdf2", "border": "#c9a84c"}, "light": {"bg": "#faf9f6", "text": "#2c2c2c", "accent": "#8b5e3c", "card": "#ffffff", "border": "#e0ddd5"}, "sepia": {"bg": "#f4ecd8", "text": "#3e3225", "accent": "#7d5a3c", "card": "#ede3cb", "border": "#d4c9a8"}};
+var THEMES   = {"dark": {"bg": "#f5f0e8", "text": "#2a1a0a", "accent": "#8b0000", "card": "#faf7f0", "border": "#9e7a50"}, "light": {"bg": "#faf9f6", "text": "#2c2c2c", "accent": "#8b5e3c", "card": "#ffffff", "border": "#e0ddd5"}, "sepia": {"bg": "#f4ecd8", "text": "#3e3225", "accent": "#7d5a3c", "card": "#ede3cb", "border": "#d4c9a8"}};
 
 /* ═══════════════════════ STATE ═════════════════════════════════ */
 var deleted    = JSON.parse(localStorage.getItem(SK)||'[]');
