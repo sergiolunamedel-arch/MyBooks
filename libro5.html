@@ -12,9 +12,8 @@
 /* ═══════════════════════ RESET & BASE ═══════════════════════ */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;
   -webkit-text-size-adjust:100%;text-size-adjust:100%}
-html{width:100%;overflow-x:hidden;overscroll-behavior:none;scroll-behavior:smooth}
-body{margin:0 auto;padding:0;width:100%;max-width:720px;overflow-x:hidden;
-  overscroll-behavior-y:contain}
+html{width:100%;overflow-x:hidden;scroll-behavior:smooth}
+body{margin:0 auto;padding:0;width:100%;max-width:720px;overflow-x:hidden}
 
 /* ═══════════════════════ CSS CUSTOM PROPS (themed) ═══════════ */
 :root{
@@ -48,9 +47,9 @@ html,body{background:var(--bg);color:var(--text)}
   position:relative;transition:color .3s}
 .para{margin:0 0 1.4em;text-align:justify;text-indent:2em;position:relative;
   overflow-wrap:break-word;word-break:break-word;max-width:100%;
-  touch-action:manipulation;
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;
   transition:transform .25s ease,opacity .25s ease}
-.para.swiping{transition:none;user-select:none;-webkit-user-select:none}
+.para.swiping{transition:none}
 .para.out-l{transform:translateX(-120%);opacity:0;transition:transform .22s ease,opacity .22s ease}
 .para.out-r{transform:translateX(120%);opacity:0;transition:transform .22s ease,opacity .22s ease}
 .para.del-collapse{max-height:0 !important;margin:0 !important;padding:0 !important;
@@ -1052,13 +1051,13 @@ function attachSwipe(p){
       else locked='y';
     }
     if(locked==='x'){
-      moved=true;
+      e.preventDefault();moved=true;
       p.style.transform='translateX('+dx+'px) rotate('+(dx*0.02)+'deg)';
       p.style.opacity=Math.max(0,1-Math.abs(dx)/180);
       // Subtle haptic at threshold
       if(Math.abs(dx)>72&&!p._hapticFired){haptic(10);p._hapticFired=true}
     }
-  },{passive:true});
+  },{passive:false});
 
   p.addEventListener('touchend',function(e){
     p.classList.remove('swiping');
