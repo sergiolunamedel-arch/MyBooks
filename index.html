@@ -266,7 +266,7 @@ footer{padding:32px 0 16px;font-size:.68rem;color:var(--muted);opacity:.5;text-a
 'use strict';
 
 /* ═══════ DATA ═══════ */
-var BOOKS=[{"slot": 1, "title": "House of Leaves", "author": "Mark Z. Danielewski", "file": "libro1.html"}, {"slot": 2, "title": "Las Mil & Una Noches", "author": "An\u00f3nimo", "file": "libro2.html"}, {"slot": 3, "title": "Ana Karenina", "author": "Leon Tolstoi", "file": "libro3.html"}, {"slot": 4, "title": "Complete Books of Blood", "author": "Clive Barker", "file": "libro4.html"}, {"slot": 5, "title": "Naomi's Room", "author": "Jonathan Aycliffe", "file": "libro5.html"}, {"slot": 6, "title": "John Carter Barsoom Series (7 Novels) A Princess of Mars; Gods of Mars; Warlord of Mars; Thuvia, Maid of Mars; Chessmen of Mars; Master Mind of Mars; Fighting Man of Mars Complete with Illustrations", "author": "Edgar Rice Burroughs", "file": "libro6.html"}];
+var BOOKS=[{"slot": 1, "title": "House of Leaves", "author": "Mark Z. Danielewski", "file": "libro1.html", "snap": {"readParas": 0, "totalParas": 0, "totalWords": 0, "readTime": 0, "lastExported": 0}}, {"slot": 2, "title": "Las Mil & Una Noches", "author": "An\u00f3nimo", "file": "libro2.html", "snap": {"readParas": 0, "totalParas": 0, "totalWords": 0, "readTime": 0, "lastExported": 0}}, {"slot": 3, "title": "Ana Karenina", "author": "Leon Tolstoi", "file": "libro3.html", "snap": {"readParas": 0, "totalParas": 0, "totalWords": 0, "readTime": 0, "lastExported": 0}}, {"slot": 4, "title": "Complete Books of Blood", "author": "Clive Barker", "file": "libro4.html", "snap": {"readParas": 0, "totalParas": 0, "totalWords": 0, "readTime": 0, "lastExported": 0}}, {"slot": 5, "title": "Naomi's Room", "author": "Jonathan Aycliffe", "file": "libro5.html", "snap": {"readParas": 2216, "totalParas": 2426, "totalWords": 56046, "readTime": 0, "lastExported": 1772264337510}}, {"slot": 6, "title": "John Carter Barsoom Series (7 Novels) A Princess of Mars; Gods of Mars; Warlord of Mars; Thuvia, Maid of Mars; Chessmen of Mars; Master Mind of Mars; Fighting Man of Mars Complete with Illustrations", "author": "Edgar Rice Burroughs", "file": "libro6.html", "snap": {"readParas": 0, "totalParas": 0, "totalWords": 0, "readTime": 0, "lastExported": 0}}];
 var basePath=location.pathname.replace(/index\.html$/,'');
 var currentSort='recent';
 var enriched=[];  // books with progress data attached
@@ -295,22 +295,42 @@ function fmtTime(secs){
 }
 
 /* ═══════ ENRICH BOOKS WITH PROGRESS DATA ═══════ */
+/* Strategy: embedded snapshot (from PC files at export time) is the
+   authoritative baseline. localStorage data is layered on top ONLY
+   when it represents MORE progress (reading done after the export).
+   This means the index is never blank after a localStorage wipe. */
 function enrichBooks(){
   enriched=BOOKS.map(function(b){
+    var snap=b.snap||{};
     var bk=bookKey(b.file);
-    var sk=bk+'_del';
-    var del=[];
-    try{del=JSON.parse(localStorage.getItem(sk)||'[]')}catch(e){}
-    var meta=null;
-    try{meta=JSON.parse(localStorage.getItem(bk+'_meta')||'null')}catch(e){}
-    var totalParas=meta?meta.totalParas:0;
-    var totalWords=meta?meta.totalWords:0;
-    var readParas=del.length;
+
+    // ── Read any post-export activity from localStorage ──
+    var lsDel=[];
+    try{lsDel=JSON.parse(localStorage.getItem(bk+'_del')||'[]')}catch(e){}
+    var lsMeta=null;
+    try{lsMeta=JSON.parse(localStorage.getItem(bk+'_meta')||'null')}catch(e){}
+    var lsLastRead=0;
+    try{lsLastRead=parseInt(localStorage.getItem(bk+'_lastread')||'0')}catch(e){}
+    var lsReadTime=0;
+    try{lsReadTime=parseInt(localStorage.getItem(bk+'_time')||'0')}catch(e){}
+
+    // ── Resolve totals (LS meta is more accurate after first open) ──
+    var totalParas=(lsMeta&&lsMeta.totalParas)?lsMeta.totalParas:snap.totalParas||0;
+    var totalWords=(lsMeta&&lsMeta.totalWords)?lsMeta.totalWords:snap.totalWords||0;
+
+    // ── readParas: take whichever shows MORE progress ──
+    // Snapshot counts _deleted.txt paragraphs (PC file).
+    // LS counts paragraph IDs swiped away on device.
+    // After a re-export both reset, so max() is always safe.
+    var readParas=Math.max(lsDel.length, snap.readParas||0);
+
+    // ── readTime: prefer LS (cumulative device session time) if larger ──
+    var readTime=Math.max((snap.readTime||0), lsReadTime);
+
+    // ── lastRead: most recent of export timestamp or last device open ──
+    var lastRead=Math.max(snap.lastExported||0, lsLastRead);
+
     var pct=totalParas>0?Math.min(100,readParas/totalParas*100):0;
-    var lastRead=0;
-    try{lastRead=parseInt(localStorage.getItem(bk+'_lastread')||'0')}catch(e){}
-    var readTime=0;
-    try{readTime=parseInt(localStorage.getItem(bk+'_time')||'0')}catch(e){}
     var remainWords=totalWords>0?Math.max(0,Math.round(totalWords*(1-pct/100))):0;
     var remainMin=Math.max(1,Math.round(remainWords/220));
     return {
