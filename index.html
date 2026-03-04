@@ -266,7 +266,7 @@ footer{padding:32px 0 16px;font-size:.68rem;color:var(--muted);opacity:.5;text-a
 'use strict';
 
 /* ═══════ DATA ═══════ */
-var BOOKS=[{"slot": 2, "title": "Las Mil & Una Noches", "author": "An\u00f3nimo", "file": "libro2.html", "snap": {"readParas": 1852, "totalParas": 13481, "totalWords": 1234247, "readTime": 0, "lastExported": 1772296035008}}, {"slot": 3, "title": "Ana Karenina", "author": "Leon Tolstoi", "file": "libro3.html", "snap": {"readParas": 1082, "totalParas": 10357, "totalWords": 335572, "readTime": 0, "lastExported": 1772295998328}}, {"slot": 4, "title": "Complete Books of Blood", "author": "Clive Barker", "file": "libro4.html", "snap": {"readParas": 6885, "totalParas": 9303, "totalWords": 304349, "readTime": 0, "lastExported": 1772296016579}}, {"slot": 6, "title": "John Carter Barsoom Series", "author": "Edgar Rice Burroughs", "file": "libro6.html", "snap": {"readParas": 2470, "totalParas": 8456, "totalWords": 486148, "readTime": 0, "lastExported": 1772553243393}}];
+var BOOKS=[{"slot": 2, "title": "Las Mil & Una Noches", "author": "An\u00f3nimo", "file": "libro2.html", "snap": {"readParas": 1852, "totalParas": 13481, "readWords": 0, "totalWords": 1234247, "readTime": 0, "lastExported": 1772296035008}}, {"slot": 3, "title": "Ana Karenina", "author": "Leon Tolstoi", "file": "libro3.html", "snap": {"readParas": 1082, "totalParas": 10357, "readWords": 0, "totalWords": 335572, "readTime": 0, "lastExported": 1772295998328}}, {"slot": 4, "title": "Complete Books of Blood", "author": "Clive Barker", "file": "libro4.html", "snap": {"readParas": 6885, "totalParas": 9303, "readWords": 0, "totalWords": 304349, "readTime": 0, "lastExported": 1772296016579}}, {"slot": 6, "title": "John Carter Barsoom Series", "author": "Edgar Rice Burroughs", "file": "libro6.html", "snap": {"readParas": 2470, "totalParas": 8456, "readWords": 0, "totalWords": 486148, "readTime": 0, "lastExported": 1772553243393}}];
 var basePath=location.pathname.replace(/index\.html$/,'');
 var currentSort='recent';
 var enriched=[];  // books with progress data attached
@@ -298,7 +298,10 @@ function fmtTime(secs){
 /* Strategy: embedded snapshot (from PC files at export time) is the
    authoritative baseline. localStorage data is layered on top ONLY
    when it represents MORE progress (reading done after the export).
-   This means the index is never blank after a localStorage wipe. */
+   This means the index is never blank after a localStorage wipe.
+
+   Progress uses word-weighted percentage (readWords/totalWords) to match
+   the book reader's own updateHUD calculation exactly. */
 function enrichBooks(){
   enriched=BOOKS.map(function(b){
     var snap=b.snap||{};
@@ -313,15 +316,20 @@ function enrichBooks(){
     try{lsLastRead=parseInt(localStorage.getItem(bk+'_lastread')||'0')}catch(e){}
     var lsReadTime=0;
     try{lsReadTime=parseInt(localStorage.getItem(bk+'_time')||'0')}catch(e){}
+    var lsReadWords=0;
+    try{lsReadWords=parseInt(localStorage.getItem(bk+'_readWords')||'0')}catch(e){}
 
     // ── Resolve totals (LS meta is more accurate after first open) ──
-    var totalParas=(lsMeta&&lsMeta.totalParas)?lsMeta.totalParas:snap.totalParas||0;
     var totalWords=(lsMeta&&lsMeta.totalWords)?lsMeta.totalWords:snap.totalWords||0;
+    var totalParas=(lsMeta&&lsMeta.totalParas)?lsMeta.totalParas:snap.totalParas||0;
 
-    // ── readParas: take whichever shows MORE progress ──
-    // Snapshot counts _deleted.txt paragraphs (PC file).
-    // LS counts paragraph IDs swiped away on device.
-    // After a re-export both reset, so max() is always safe.
+    // ── readWords: word-weighted progress matching updateHUD in the book reader ──
+    // snap.readWords = words deleted at export time (PC baseline).
+    // lsReadWords    = total deleted words tracked by the device (recomputed on every open).
+    // Take whichever shows MORE progress; safe after re-exports because snap advances.
+    var readWords=Math.max(snap.readWords||0, lsReadWords);
+
+    // ── readParas: kept for metadata display (paragraphs read / total) ──
     var readParas=Math.max(lsDel.length, snap.readParas||0);
 
     // ── readTime: prefer LS (cumulative device session time) if larger ──
@@ -330,14 +338,17 @@ function enrichBooks(){
     // ── lastRead: most recent of export timestamp or last device open ──
     var lastRead=Math.max(snap.lastExported||0, lsLastRead);
 
-    var pct=totalParas>0?Math.min(100,readParas/totalParas*100):0;
-    var remainWords=totalWords>0?Math.max(0,Math.round(totalWords*(1-pct/100))):0;
+    // Word-weighted pct — identical formula to book reader's updateHUD
+    var pct=totalWords>0?Math.min(100,readWords/totalWords*100):0;
+    var remainWords=totalWords>0?Math.max(0,totalWords-readWords):0;
     var remainMin=Math.max(1,Math.round(remainWords/220));
     return {
       slot:b.slot,title:b.title,author:b.author,file:b.file,
-      readParas:readParas,totalParas:totalParas,totalWords:totalWords,
+      readParas:readParas,totalParas:totalParas,
+      readWords:readWords,totalWords:totalWords,
       pct:pct,lastRead:lastRead,readTime:readTime,
-      remainMin:remainMin,isNew:readParas===0,isDone:pct>=99.5&&totalParas>0
+      remainMin:remainMin,isNew:readWords===0&&readParas===0,
+      isDone:pct>=99.5&&totalWords>0
     };
   });
 }
