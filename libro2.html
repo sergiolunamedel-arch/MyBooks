@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=5,viewport-fit=cover">
-<meta name="theme-color" content="#070010" id="meta-theme">
+<meta name="theme-color" content="#060810" id="meta-theme">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
@@ -13,13 +13,14 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;
   -webkit-text-size-adjust:100%;text-size-adjust:100%}
 html{width:100%;overflow-x:hidden;overflow-anchor:none}
-body{margin:0 auto;padding:0;width:100%;max-width:720px;overflow-x:hidden}
+body{margin:0 auto;padding:0;width:100%;max-width:var(--content-width,720px);overflow-x:hidden}
 
 /* ═══════════════════════ CSS CUSTOM PROPS (themed) ═══════════ */
 :root{
-  --bg:#070010;--text:#00ffe5;--accent:#ff00aa;
-  --card:#040008;--border:#00e5ff;
+  --bg:#060810;--text:#c0c8d8;--accent:#37474f;
+  --card:#040608;--border:#263238;
   --font-body:Georgia,serif;--font-size:20px;--line-height:1.85;
+  --content-width:720px;
 }
 html,body{background:var(--bg);color:var(--text)}
 
@@ -124,17 +125,6 @@ html,body{background:var(--bg);color:var(--text)}
   background:var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .sett-size-val{font-size:.85rem;font-weight:bold;color:var(--accent);margin-left:8px}
 
-/* ═══════════════════════ UNDO TOAST ═══════════════════════ */
-#undo-toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(80px);
-  background:var(--accent);color:#fff;padding:10px 20px;border-radius:24px;font-size:.85rem;
-  font-family:'Segoe UI',system-ui,sans-serif;font-weight:bold;z-index:1050;opacity:0;
-  transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;pointer-events:none;
-  box-shadow:0 4px 16px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;
-  white-space:nowrap}
-#undo-toast.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
-#undo-btn{background:rgba(255,255,255,.25);color:#fff;border:none;padding:4px 12px;
-  border-radius:14px;font-size:.8rem;cursor:pointer;font-weight:bold}
-
 /* ═══════════════════════ ANIMATIONS ════════════════════════ */
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 #main{animation:fadeIn .4s ease}
@@ -168,7 +158,7 @@ html,body{background:var(--bg);color:var(--text)}
     <div class="sett-row">
       <div class="sett-label">Tema</div>
       <div class="sett-themes">
-        <div class="sett-theme-btn" data-theme="default" style="background:#070010;color:#00ffe5;border-color:#00e5ff"
+        <div class="sett-theme-btn" data-theme="default" style="background:#060810;color:#c0c8d8;border-color:#263238"
              onclick="setTheme('default')">Default</div>
         <div class="sett-theme-btn" data-theme="dark" style="background:#0f0f1a;color:#c8c6d0;border-color:#2e2e44"
              onclick="setTheme('dark')">Dark</div>
@@ -201,13 +191,12 @@ html,body{background:var(--bg);color:var(--text)}
       <input type="range" class="sett-slider" id="lh-slider" min="130" max="260" value="185"
              oninput="setLineHeight(this.value)">
     </div>
+    <div class="sett-row">
+      <div class="sett-label">Ancho de columna <span id="width-val" class="sett-size-val">720px</span></div>
+      <input type="range" class="sett-slider" id="width-slider" min="320" max="900" value="720"
+             oninput="setWidth(this.value)">
+    </div>
   </div>
-</div>
-
-<!-- ═══ UNDO TOAST ═══ -->
-<div id="undo-toast">
-  <span id="undo-msg">Párrafo eliminado</span>
-  <button id="undo-btn" onclick="undoDelete()">↩ Deshacer</button>
 </div>
 
 <!-- ═══ MAIN CONTENT ═══ -->
@@ -11854,6 +11843,7 @@ By Anónimo</p>
 <div id="toolbar">
   <button class="tb-btn" id="btn-toc" onclick="openTOC()" title="Contenido">📑</button>
   <button class="tb-btn" id="btn-settings" onclick="openSettings()" title="Ajustes">⚙</button>
+  <button class="tb-btn" id="btn-undo" onclick="undoDelete()" title="Deshacer">↩</button>
   <button class="tb-btn" id="btn-fullscreen" onclick="toggleFullscreen()" title="Pantalla completa">⛶</button>
   <button class="tb-btn" id="btn-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Inicio">⬆</button>
 </div>
@@ -11867,12 +11857,11 @@ var BOOK_KEY = 'bf_'+location.pathname.replace(/[^a-z0-9]/gi,'_');
 var SK       = BOOK_KEY+'_del';
 var OFFSET   = 41463;
 var TOTAL    = 1192791+OFFSET;
-var THEMES   = {"default": {"bg": "#070010", "text": "#00ffe5", "accent": "#ff00aa", "card": "#040008", "border": "#00e5ff"}, "dark": {"bg": "#0f0f1a", "text": "#c8c6d0", "accent": "#a78bfa", "card": "#1a1a2e", "border": "#2e2e44"}, "light": {"bg": "#faf9f6", "text": "#2c2c2c", "accent": "#8b5e3c", "card": "#ffffff", "border": "#e0ddd5"}, "sepia": {"bg": "#f4ecd8", "text": "#3e3225", "accent": "#7d5a3c", "card": "#ede3cb", "border": "#d4c9a8"}};
+var THEMES   = {"default": {"bg": "#060810", "text": "#c0c8d8", "accent": "#37474f", "card": "#040608", "border": "#263238"}, "dark": {"bg": "#0f0f1a", "text": "#c8c6d0", "accent": "#a78bfa", "card": "#1a1a2e", "border": "#2e2e44"}, "light": {"bg": "#faf9f6", "text": "#2c2c2c", "accent": "#8b5e3c", "card": "#ffffff", "border": "#e0ddd5"}, "sepia": {"bg": "#f4ecd8", "text": "#3e3225", "accent": "#7d5a3c", "card": "#ede3cb", "border": "#d4c9a8"}};
 
 /* ═══════════════════════ STATE ═════════════════════════════════ */
 var deleted    = JSON.parse(localStorage.getItem(SK)||'[]');
 var undoStack  = [];   // stack of {ids:[], scrollY:number}
-var undoTimer  = null;
 
 /* ═══════════════════════ HELPERS ═══════════════════════════════ */
 function $(id){return document.getElementById(id)}
@@ -11925,7 +11914,12 @@ window.setLineHeight=function(v){
   $('lh-val').textContent=lh;
   localStorage.setItem(BOOK_KEY+'_lh',v);
 };
-// Restore saved font prefs
+window.setWidth=function(v){
+  document.documentElement.style.setProperty('--content-width',v+'px');
+  $('width-val').textContent=v+'px';
+  localStorage.setItem(BOOK_KEY+'_width',v);
+};
+// Restore saved font/layout prefs
 (function(){
   var f=localStorage.getItem(BOOK_KEY+'_font');
   if(f){document.documentElement.style.setProperty('--font-body',f);
@@ -11936,6 +11930,9 @@ window.setLineHeight=function(v){
   var lh=localStorage.getItem(BOOK_KEY+'_lh');
   if(lh){var v=(lh/100).toFixed(2);document.documentElement.style.setProperty('--line-height',v);
     $('lh-slider').value=lh;$('lh-val').textContent=v}
+  var w=localStorage.getItem(BOOK_KEY+'_width');
+  if(w){document.documentElement.style.setProperty('--content-width',w+'px');
+    $('width-slider').value=w;$('width-val').textContent=w+'px'}
 })();
 
 /* ═══════════════════════ 4. SCROLL PROGRESS + HUD ═════════════ */
@@ -11983,7 +11980,7 @@ function updateHUD(){
   });
 }
 
-/* ═══════════════════════ 5. DELETE SYSTEM (BUG FIX) ═══════════ */
+/* ═══════════════════════ 5. DELETE SYSTEM ═════════════════════ */
 /*
  * CRITICAL FIX: Instead of scrollTo(top:0), we now:
  *   1. Measure the scroll position of the NEXT surviving paragraph
@@ -12023,8 +12020,14 @@ function deleteUpTo(el){
   if(removedIds.length>0){
     undoStack.push({ids:removedIds,scrollY:window.scrollY});
     if(undoStack.length>20)undoStack.shift();  // cap undo history
-    showUndoToast(removedIds.length);
   }
+
+  // Update stored readWords before removing from DOM (data-wc still accessible)
+  var newWords=toRemove.reduce(function(s,p){return s+parseInt(p.getAttribute('data-wc')||'0',10)},0);
+  try{
+    var curW=parseInt(localStorage.getItem(BOOK_KEY+'_readWords')||'0');
+    localStorage.setItem(BOOK_KEY+'_readWords',String(curW+newWords));
+  }catch(e){}
 
   // Remove from DOM immediately (swipe animation already gave visual feedback)
   toRemove.forEach(function(p){p.remove()});
@@ -12051,14 +12054,6 @@ function animAndDelete(el,dir){
 }
 
 /* ═══════════════════════ 6. UNDO SYSTEM ═══════════════════════ */
-function showUndoToast(count){
-  var toast=$('undo-toast');
-  $('undo-msg').textContent=count>1?count+' párrafos eliminados':'Párrafo eliminado';
-  toast.classList.add('show');
-  clearTimeout(undoTimer);
-  undoTimer=setTimeout(function(){toast.classList.remove('show')},5000);
-}
-
 window.undoDelete=function(){
   if(undoStack.length===0)return;
   var action=undoStack.pop();
@@ -12085,8 +12080,6 @@ window.undoDelete=function(){
     });
   }
 })();
-
-$('undo-toast').classList.remove('show');
 
 /* ═══════════════════════ 7. SWIPE HANDLER ═════════════════════ */
 function attachSwipe(p){
@@ -12228,11 +12221,13 @@ function init(){
     localStorage.setItem(BOOK_KEY+'_lastread',String(Date.now()));
   }catch(e){}
 
-  // Apply deletions from localStorage
+  // Apply deletions from localStorage and track their word count
+  var initReadWords=0;
   deleted.forEach(function(id){
     var el=document.getElementById(id);
-    if(el)el.remove();
+    if(el){initReadWords+=parseInt(el.getAttribute('data-wc')||'0',10);el.remove();}
   });
+  try{localStorage.setItem(BOOK_KEY+'_readWords',String(initReadWords));}catch(e){}
 
   // Attach swipe to all remaining paragraphs
   allParas().forEach(function(p){attachSwipe(p)});
