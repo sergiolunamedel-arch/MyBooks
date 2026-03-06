@@ -211,15 +211,15 @@ footer{padding:32px 0 16px;font-size:.68rem;color:var(--muted);opacity:.5;text-a
 <div class="controls">
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
-    <input class="search-input" id="search" type="text" placeholder="Buscar libro…" autocomplete="off">
+    <input class="search-input" id="search" type="text" placeholder="Search books…" autocomplete="off">
   </div>
-  <button class="ctrl-btn" id="btn-sort" title="Ordenar">↕</button>
-  <button class="ctrl-btn" id="btn-theme" title="Tema">◐</button>
+  <button class="ctrl-btn" id="btn-sort" title="Sort">↕</button>
+  <button class="ctrl-btn" id="btn-theme" title="Theme">◐</button>
 </div>
 
 <!-- Continue reading hero -->
 <a class="hero" id="hero" href="#">
-  <div class="hero-badge"><span class="hero-badge-dot"></span> Continuar leyendo</div>
+  <div class="hero-badge"><span class="hero-badge-dot"></span> Continue reading</div>
   <div class="hero-title" id="hero-title"></div>
   <div class="hero-author" id="hero-author"></div>
   <div class="hero-progress-wrap"><div class="hero-progress-fill" id="hero-fill"></div></div>
@@ -232,29 +232,29 @@ footer{padding:32px 0 16px;font-size:.68rem;color:var(--muted);opacity:.5;text-a
 <!-- PWA Install banner -->
 <div class="install-banner" id="install-banner">
   <span class="install-icon">📲</span>
-  <div class="install-text"><strong>Instalar como app</strong><br>Acceso rápido desde tu pantalla de inicio</div>
+  <div class="install-text"><strong>Install as app</strong><br>Quick access from your home screen</div>
   <span class="install-dismiss" id="install-dismiss">✕</span>
 </div>
 
 <!-- Library -->
-<div class="section-label" id="lib-label">Biblioteca</div>
+<div class="section-label" id="lib-label">Library</div>
 <div class="shelf" id="shelf"></div>
-<div class="empty-state" id="empty" style="display:none">No se encontraron libros</div>
+<div class="empty-state" id="empty" style="display:none">No books found</div>
 
 <footer>BookForge v4.0</footer>
 </div>
 
 <!-- Sort menu -->
 <div class="sort-menu" id="sort-menu">
-  <div class="sort-opt active" data-sort="recent" onclick="setSort('recent')">🕐 Recientes</div>
-  <div class="sort-opt" data-sort="progress" onclick="setSort('progress')">📊 Progreso</div>
-  <div class="sort-opt" data-sort="title" onclick="setSort('title')">🔤 Título</div>
-  <div class="sort-opt" data-sort="unread" onclick="setSort('unread')">🆕 Sin empezar</div>
+  <div class="sort-opt active" data-sort="recent" onclick="setSort('recent')">🕐 Recent</div>
+  <div class="sort-opt" data-sort="progress" onclick="setSort('progress')">📊 Progress</div>
+  <div class="sort-opt" data-sort="title" onclick="setSort('title')">🔤 Title</div>
+  <div class="sort-opt" data-sort="unread" onclick="setSort('unread')">🆕 Unread</div>
 </div>
 
 <!-- Bottom nav -->
 <div class="bottom-nav">
-  <button class="nav-btn" id="nav-continue" style="display:none" onclick="continueLast()">▶ Continuar</button>
+  <button class="nav-btn" id="nav-continue" style="display:none" onclick="continueLast()">▶ Continue</button>
 </div>
 
 <script>
@@ -262,7 +262,7 @@ footer{padding:32px 0 16px;font-size:.68rem;color:var(--muted);opacity:.5;text-a
 'use strict';
 
 /* ═══════ DATA ═══════ */
-var BOOKS=[{"slot": 2, "title": "Las Mil & Una Noches", "author": "An\u00f3nimo", "file": "libro2.html", "snap": {"readParas": 1852, "totalParas": 13481, "readWords": 0, "totalWords": 1234247, "readTime": 0, "lastExported": 1772296035008}}, {"slot": 3, "title": "Ana Karenina", "author": "Leon Tolstoi", "file": "libro3.html", "snap": {"readParas": 1082, "totalParas": 10357, "readWords": 0, "totalWords": 335572, "readTime": 0, "lastExported": 1772295998328}}, {"slot": 4, "title": "Complete Books of Blood", "author": "Clive Barker", "file": "libro4.html", "snap": {"readParas": 6885, "totalParas": 9303, "readWords": 0, "totalWords": 304349, "readTime": 0, "lastExported": 1772296016579}}, {"slot": 6, "title": "John Carter Barsoom Series", "author": "Edgar Rice Burroughs", "file": "libro6.html", "snap": {"readParas": 4994, "totalParas": 9676, "readWords": 173295, "totalWords": 486146, "readTime": 0, "lastExported": 1772770860149}}];
+var BOOKS=[{"slot": 2, "title": "Las Mil & Una Noches", "author": "An\u00f3nimo", "file": "libro2.html", "snap": {"readParas": 1852, "totalParas": 13481, "readWords": 0, "totalWords": 1234247, "readTime": 0, "lastExported": 1772296035008}}, {"slot": 3, "title": "Ana Karenina", "author": "Leon Tolstoi", "file": "libro3.html", "snap": {"readParas": 1082, "totalParas": 10357, "readWords": 0, "totalWords": 335572, "readTime": 0, "lastExported": 1772295998328}}, {"slot": 4, "title": "Complete Books of Blood", "author": "Clive Barker", "file": "libro4.html", "snap": {"readParas": 6885, "totalParas": 9303, "readWords": 0, "totalWords": 304349, "readTime": 0, "lastExported": 1772296016579}}, {"slot": 6, "title": "John Carter Barsoom Series", "author": "Edgar Rice Burroughs", "file": "libro6.html", "snap": {"readParas": 5188, "totalParas": 9765, "readWords": 178683, "totalWords": 486146, "readTime": 0, "lastExported": 1772773027070}}];
 var basePath=location.pathname.replace(/index\.html$/,'');
 var currentSort='recent';
 var enriched=[];  // books with progress data attached
@@ -405,7 +405,7 @@ function renderShelf(){
     card.innerHTML=
       '<div class="book-spine"></div>'+
       '<div class="book-body">'+
-        '<div class="book-slot">libro'+b.slot+'</div>'+
+        '<div class="book-slot">book '+b.slot+'</div>'+
         '<div class="book-title">'+b.title+'</div>'+
         authorHtml+
         '<div class="book-progress-row">'+
